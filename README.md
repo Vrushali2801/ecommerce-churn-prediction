@@ -183,7 +183,3 @@ python mlflow/train_churn.py
 **CLV Tiers:**
 - Projections for 1-year customer lifetime value
 - Grouped into Low, Medium, High, VIP
-
-## License
-
-Built for learning and portfolio purposes.
