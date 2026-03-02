@@ -37,17 +37,21 @@ DB_PASSWORD=your_password_here
 
 ### Training the Model
 
-First, start MLflow (keeps track of your experiments):
-```powershell
-mlflow server --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlflow/artifacts --host 127.0.0.1 --port 5000
-```
-
-In another terminal, train the model:
+Train the model:
 ```powershell
 python mlflow/train_churn.py
 ```
 
 This will load the data, engineer features, train a Random Forest classifier, and save the model to `models/churn_model.pkl`. Should take a few minutes.
+
+### Viewing Training Results with MLflow
+
+Start MLflow UI to see your experiment results:
+```powershell
+mlflow ui
+```
+
+Then open http://localhost:5000 in your browser. Click on "churn_prediction" in the left sidebar to see all your training runs with metrics, parameters, and saved models.
 
 ### Running the API
 
