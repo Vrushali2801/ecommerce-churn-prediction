@@ -8,7 +8,7 @@ This project analyzes customer purchase behavior to predict churn risk. I worked
 
 The system also includes RFM (Recency, Frequency, Monetary) segmentation to group customers into categories like "Champions" or "At Risk", plus Customer Lifetime Value predictions.
 
-**What's included:**
+**What is included:**
 - Churn prediction model (Random Forest with SMOTE for handling imbalanced data)
 - RFM customer segmentation 
 - CLV (Customer Lifetime Value) calculations
@@ -16,8 +16,6 @@ The system also includes RFM (Recency, Frequency, Monetary) segmentation to grou
 - Simple web interface for looking up customers
 - MLflow for tracking experiments
 - PostgreSQL database integration
-
-## Getting Started
 
 ## Getting Started
 
@@ -149,22 +147,6 @@ All experiments tracked in MLflow.
    - CLV calculation (revenue projections)
 4. FastAPI serves everything via REST endpoints
 5. Simple web UI displays results
-
-## Common Issues
-
-**Port 8000 already in use?**
-```powershell
-Get-NetTCPConnection -LocalPort 8000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
-```
-
-**Can't connect to database?**
-Make sure PostgreSQL is running on port 5433 and your `.env` file has the right credentials.
-
-**Model file not found?**
-Train it first:
-```powershell
-python mlflow/train_churn.py
-```
 
 ## What the Segments Mean
 
