@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Churn Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f0fdf4;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-hint {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.low {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+        }
+
+        .result.medium {
+            background: #fffbeb;
+            border: 2px solid #f59e0b;
+        }
+
+        .result.high {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .risk-badge.low {
+            background: #22c55e;
+            color: white;
+        }
+
+        .risk-badge.medium {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .risk-badge.high {
+            background: #ef4444;
+            color: white;
+        }
+
+        .probability {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .probability.low { color: #22c55e; }
+        .probability.medium { color: #f59e0b; }
+        .probability.high { color: #ef4444; }
+
+        .message {
+            font-size: 1.1em;
+            color: #374151;
+            margin-top: 15px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .quick-fill {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .quick-btn:hover {
+            background: #e5e7eb;
+            border-color: #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
+        .segment-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .segment-champions { background: #10b981; color: white; }
+        .segment-loyal { background: #3b82f6; color: white; }
+        .segment-at-risk { background: #f59e0b; color: white; }
+        .segment-need-attention { background: #f97316; color: white; }
+        .segment-potential { background: #8b5cf6; color: white; }
+        .segment-promising { background: #06b6d4; color: white; }
+        .segment-new-customers { background: #14b8a6; color: white; }
+        .segment-hibernating { background: #6b7280; color: white; }
+        .segment-lost { background: #ef4444; color: white; }
+        .segment-others { background: #9ca3af; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Customer Churn Check</h1>
+            <p>Enter a Customer ID to check their churn risk</p>
+        </div>
+
+        <div class="card">
+            <div class="status">
+                <div class="status-dot"></div>
+                <span><strong>System Ready</strong></span>
+            </div>
+
+            <form id="churnForm">
+                <div class="form-group">
+                    <label for="customerId">Customer ID</label>
+                    <input type="number" id="customerId" placeholder="e.g., 17850" required>
+                    <div class="input-hint">All data will be fetched from your database automatically</div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    🔍 Check This Customer
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Looking up customer...</p>
+            </div>
+
+            <div class="result" id="result">
+                <div class="risk-badge" id="riskBadge"></div>
+                <div class="probability" id="probability"></div>
+                <div><span class="segment-badge" id="segmentBadge"></span></div>
+                
+                <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 10px;">
+                    <h3 style="margin-bottom: 15px; color: #374151;">Customer Info</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
+                        <div>
+                            <strong>Days Since Last Purchase:</strong><br>
+                            <span id="recency" style="font-size: 1.5em; color: #667eea;"></span>
+                        </div>
+                        <div>
+                            <strong>Total Purchases:</strong><br>
+                            <span id="frequency" style="font-size: 1.5em; color: #667eea;"></span>
+                        </div>
+                        <div>
+                            <strong>Total Spent:</strong><br>
+                            <span id="monetary" style="font-size: 1.5em; color: #667eea;"></span>
+                        </div>
+                        <div>
+                            <strong>Avg Order Value:</strong><br>
+                            <span id="avgOrder" style="font-size: 1.5em; color: #667eea;"></span>
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <strong>🎯 Projected Lifetime Value (1-year):</strong><br>
+                            <span id="clv" style="font-size: 1.8em; color: #10b981; font-weight: bold;"></span>
+                            <span id="clvSegment" style="margin-left: 10px; font-size: 0.9em; padding: 4px 12px; background: #10b981; color: white; border-radius: 12px;"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message" id="message"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Powered by Machine Learning • Real-time Predictions</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        document.getElementById('churnForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            
+            try {
+                const customerId = parseInt(document.getElementById('customerId').value);
+                
+                const response = await fetch(`${API_URL}/api/v1/customer/lookup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        customer_id: customerId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Lookup failed');
+                }
+                
+                const data = await response.json();
+                
+                if (!data.exists) {
+                    alert(`Customer ${customerId} not found in database. Try another ID"`);
+                    return;
+                }
+                
+                // Fetch RFM segment
+                const rfmResponse = await fetch(`${API_URL}/api/v1/rfm/customers/${customerId}/segment`);
+                const rfmData = rfmResponse.ok ? await rfmResponse.json() : null;
+                
+                displayResult(data, rfmData);
+                
+            } catch (error) {
+                alert('Error: Could not lookup customer. Make sure the API is running on port 8000.');
+                console.error(error);
+            } finally {
+                submitBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+
+        function displayResult(data, rfmData) {
+            const result = document.getElementById('result');
+            const riskBadge = document.getElementById('riskBadge');
+            const probability = document.getElementById('probability');
+            const message = document.getElementById('message');
+            const segmentBadge = document.getElementById('segmentBadge');
+            
+            const risk = data.risk_level.toLowerCase();
+            const prob = (data.churn_probability * 100).toFixed(1);
+            
+            // Remove old classes
+            result.className = 'result';
+            riskBadge.className = 'risk-badge';
+            probability.className = 'probability';
+            
+            // Add new classes
+            result.classList.add(risk, 'show');
+            riskBadge.classList.add(risk);
+            probability.classList.add(risk);
+            
+            // Set content
+            riskBadge.textContent = `${data.risk_level.toUpperCase()} RISK`;
+            probability.textContent = `${prob}% Churn Probability`;
+            
+            // Set customer info
+            document.getElementById('recency').textContent = `${data.days_since_last_purchase} days`;
+            document.getElementById('frequency').textContent = data.total_purchases;
+            document.getElementById('monetary').textContent = `$${data.total_spent.toFixed(2)}`;
+            document.getElementById('avgOrder').textContent = `$${data.avg_order_value.toFixed(2)}`;
+            
+            // Set CLV
+            if (data.clv_1year) {
+                document.getElementById('clv').textContent = `$${data.clv_1year.toFixed(2)}`;
+                document.getElementById('clvSegment').textContent = data.clv_segment || '';
+            }
+            
+            // Set RFM segment
+            if (rfmData) {
+                const segmentClass = `segment-${rfmData.Segment.toLowerCase().replace(/ /g, '-')}`;
+                segmentBadge.className = `segment-badge ${segmentClass}`;
+                segmentBadge.textContent = `📊 ${rfmData.Segment} (RFM: ${rfmData.RFM_Score})`;
+            } else {
+                segmentBadge.textContent = '';
+            }
+            
+            // Set message
+            message.textContent = data.message;
+        }
+    </script>
+</body>
+</html>
