@@ -1,100 +1,90 @@
-# Customer Analytics & Churn Prediction Platform
+# E-Commerce Churn Prediction
 
-AI-powered customer retention system with churn prediction, RFM segmentation, and Customer Lifetime Value (CLV) analysis.
+Predicting which customers are likely to churn using machine learning on real retail transaction data.
 
-## 🎯 Overview
+## What This Does
 
-An end-to-end analytics platform built for e-commerce businesses to identify at-risk customers and optimize retention strategies. The system processes 391K+ transactions from 4,319 customers, achieving 95%+ prediction accuracy.
+This project analyzes customer purchase behavior to predict churn risk. I worked with a dataset of ~391K transactions from 4,319 customers and built a Random Forest model that achieves 95%+ accuracy in identifying customers who might stop buying.
 
-**Key Capabilities:**
-- 🤖 ML-powered churn prediction (Random Forest with SMOTE)
-- 📊 RFM customer segmentation (9 segments from Champions to At Risk)
-- 💰 Customer Lifetime Value (CLV) projections
-- 🚀 Production-ready REST API with FastAPI
-- 📈 MLflow experiment tracking
-- 🗄️ PostgreSQL data warehouse
-- 🎨 Interactive web UI for customer lookup
+The system also includes RFM (Recency, Frequency, Monetary) segmentation to group customers into categories like "Champions" or "At Risk", plus Customer Lifetime Value predictions.
 
-## ⚡ Quick Start
+**What's included:**
+- Churn prediction model (Random Forest with SMOTE for handling imbalanced data)
+- RFM customer segmentation 
+- CLV (Customer Lifetime Value) calculations
+- REST API built with FastAPI
+- Simple web interface for looking up customers
+- MLflow for tracking experiments
+- PostgreSQL database integration
 
-### Setup (5 minutes)
+## Getting Started
 
-1. **Activate environment:**
-   ```powershell
-   .\.venv\Scripts\Activate.ps1
-   ```
+## Getting Started
 
-2. **Configure database:**
-   Create `.env` file with your PostgreSQL credentials:
-   ```env
-   DB_HOST=localhost
-   DB_PORT=5433
-   DB_NAME=online_retail
-   DB_USER=postgres
-   DB_PASSWORD=your_password_here
-   ```
+### Setup
 
-3. **Train model:**
-   ```powershell
-   # Terminal 1: Start MLflow
-   mlflow server --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlflow/artifacts --host 127.0.0.1 --port 5000
-   
-   # Terminal 2: Train
-   python mlflow/train_churn.py
-   ```
-   Expected: Model saved to `models/churn_model.pkl` with ROC-AUC ~0.88
-
-4. **Start API:**
-   ```powershell
-   uvicorn api.main:app --reload --port 8000
-   ```
-
-5. **Open UI:**
-   Navigate to `ui/index.html` in your browser and enter a customer ID (e.g., 17850)
-
-## 🔧 Tech Stack
-
-- **Backend:** Python 3.10, FastAPI, scikit-learn
-- **Database:** PostgreSQL 15
-- **ML Ops:** MLflow, joblib
-- **Frontend:** HTML/CSS/JavaScript (Vanilla)
-- **Data:** pandas, numpy
-
-
-**Access MLflow UI:** http://localhost:5000
-
-### 2. Start the API
-
+Activate your virtual environment:
 ```powershell
-# From the project root
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+.\.venv\Scripts\Activate.ps1
 ```
 
-**Access:**
-- API Documentation: http://localhost:8000/docs
-- Alternative Docs: http://localhost:8000/redoc
-## 📡 API Endpoints
+Create a `.env` file with your database info:
+```env
+DB_HOST=localhost
+DB_PORT=5433
+DB_NAME=online_retail
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+```
 
-**Main Endpoints:**
-- `GET /api/v1/customer/lookup/{customer_id}` - Get complete customer analysis (churn + RFM + CLV)
-- `POST /api/v1/churn/predict` - Predict churn for custom features
-- `GET /api/v1/rfm/segments` - View all RFM segments
-- `GET /api/v1/health` - API health check
+### Training the Model
 
-**Interactive Docs:** http://localhost:8000/docs
-
-## 💡 Usage Examples
-
-### Customer Lookup (Recommended)
+First, start MLflow (keeps track of your experiments):
 ```powershell
-# Using the UI
-Open ui/index.html → Enter Customer ID: 17850
+mlflow server --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root ./mlflow/artifacts --host 127.0.0.1 --port 5000
+```
 
-# Using API directly
+In another terminal, train the model:
+```powershell
+python mlflow/train_churn.py
+```
+
+This will load the data, engineer features, train a Random Forest classifier, and save the model to `models/churn_model.pkl`. Should take a few minutes.
+
+### Running the API
+
+```powershell
+uvicorn api.main:app --reload --port 8000
+```
+
+Then open `ui/index.html` in your browser and try looking up a customer (try ID 17850 - it's a high-risk customer).
+
+API docs are at http://localhost:8000/docs
+
+## Tech Stack
+
+- Python 3.10
+- FastAPI for the API
+- scikit-learn for ML
+- PostgreSQL for data storage
+- MLflow for tracking experiments
+- Vanilla JS for the UI (kept it simple)
+
+## How to Use It
+
+### Look up a customer
+
+Open `ui/index.html` in your browser and enter a customer ID (try 17850).
+
+You'll get back their churn risk, RFM segment, predicted lifetime value, and purchase history. For example, customer 17850 has a 90% churn probability and is classified as "At Risk" despite spending $5,391 over 34 purchases.
+
+### Using the API directly
+
+```bash
 curl http://localhost:8000/api/v1/customer/lookup/17850
 ```
 
-**Response includes:**
+Response:
 ```json
 {
   "customer_id": 17850,
@@ -108,7 +98,10 @@ curl http://localhost:8000/api/v1/customer/lookup/17850
 }
 ```
 
-### Batch Churn Prediction
+### Making predictions with custom data
+
+If you want to test the model with your own feature values:
+
 ```python
 import requests
 
@@ -120,18 +113,7 @@ data = {
         "frequency": 8,
         "monetary_total": 1200,
         "monetary_mean": 150,
-        "monetary_std": 30,
-        "total_items": 40,
-        "avg_items_per_order": 5,
-        "max_items_per_order": 10,
-        "avg_unit_price": 30,
-        "max_unit_price": 75,
-        "min_unit_price": 10,
-        "price_range": 65,
-        "tenure_days": 200,
-        "active_days": 180,
-        "purchase_velocity": 1.2,
-        "avg_days_between_purchases": 25
+        # ... other features
     }
 }
 
@@ -139,63 +121,69 @@ response = requests.post(url, json=data)
 print(response.json())
 ```
 
-## 📊 Model Performance
+Check the API docs at http://localhost:8000/docs for all available endpoints.
 
-- **Algorithm:** Random Forest Classifier with SMOTE
-- **Features:** 16 engineered features (RFM + behavioral + temporal)
-- **Accuracy:** 95%+ on test set
-- **ROC-AUC:** 0.88
-- **Training Data:** 391,925 transactions from 4,319 customers
-- **Tracking:** MLflow for experiment management
+## About the Model
 
-## 🗂️ Data Pipeline
+Using Random Forest with SMOTE to handle class imbalance (most customers don't churn, so the dataset was pretty skewed).
 
-```
-Raw Data (PostgreSQL) 
-  ↓
-Data Loader → Feature Engineering (16 features)
-  ↓
-ML Models (Churn + RFM + CLV)
-  ↓
-FastAPI Endpoints
-  ↓
-JSON Response / Web UI
-```
+The model uses 16 engineered features:
+- RFM metrics (recency, frequency, monetary)
+- Purchase patterns (items per order, price ranges)
+- Temporal features (tenure, active days, purchase velocity)
 
-## 🛠️ Troubleshooting
+Results on test data:
+- 95%+ accuracy
+- ROC-AUC: 0.88
+- Trained on 391,925 transactions from 4,319 customers
 
-**Port already in use:**
+All experiments tracked in MLflow.
+
+## How It Works
+
+1. Data gets loaded from PostgreSQL
+2. Feature engineering creates 16 features from raw transactions
+3. Three models run in parallel:
+   - Churn prediction (Random Forest)
+   - RFM segmentation (rule-based scoring)
+   - CLV calculation (revenue projections)
+4. FastAPI serves everything via REST endpoints
+5. Simple web UI displays results
+
+## Common Issues
+
+**Port 8000 already in use?**
 ```powershell
-# Find and kill process on port 8000
 Get-NetTCPConnection -LocalPort 8000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 ```
 
-**Database connection error:**
-- Verify PostgreSQL is running on port 5433
-- Check `.env` credentials match your database
+**Can't connect to database?**
+Make sure PostgreSQL is running on port 5433 and your `.env` file has the right credentials.
 
-**Model not found:**
+**Model file not found?**
+Train it first:
 ```powershell
-# Retrain model
 python mlflow/train_churn.py
 ```
 
-## 📈 Key Features
+## What the Segments Mean
 
-**RFM Segmentation (9 Segments):**
-- Champions, Loyal Customers, Potential Loyalists
-- New Customers, Promising, Need Attention
-- About to Sleep, At Risk, Others
+**RFM Segments:**
+- Champions - Best customers, buy frequently
+- Loyal Customers - Regular buyers
+- At Risk - Haven't purchased in a while
+- About to Sleep - Losing interest
+- And 5 others...
 
-**Churn Risk Levels:**
-- Low Risk: 0-30% churn probability
-- Medium Risk: 30-70% churn probability  
-- High Risk: 70-100% churn probability
+**Risk Levels:**
+- Low: 0-30% chance of churning
+- Medium: 30-70%
+- High: 70-100%
 
-**CLV Projections:**
-- 1-year customer lifetime value forecast
-- Segments: Low, Medium, High, VIP
+**CLV Tiers:**
+- Projections for 1-year customer lifetime value
+- Grouped into Low, Medium, High, VIP
 
-## 📄 License
+## License
 
-Educational and analytical purposes.
+Built for learning and portfolio purposes.
